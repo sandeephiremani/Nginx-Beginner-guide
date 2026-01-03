@@ -90,7 +90,7 @@ server {
 
 ```bash
 touch index.html
-echo "<h1>Hello Learners from the created Nginx file</h1>"
+echo "<h1>Hello Learners from the created Nginx file</h1>" >> index.html
 mv index.html /var/www/html/
 ```
 2. Reload the Nginx
