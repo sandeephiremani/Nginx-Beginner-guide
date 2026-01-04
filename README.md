@@ -180,7 +180,7 @@ server {
 - proxy_pass → forwards requests to your backend app
 - proxy_set_header → preserves original request metadata (like IP and host)
 
-## Goal of Demo
+## 🎯 Goal of Demo
 
 We will access the python app from nginx with port 80 
 ```scss
