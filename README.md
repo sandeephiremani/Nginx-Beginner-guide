@@ -54,7 +54,7 @@ Visit http://localhost:8080 it will open the default Nginx file in the web brows
 ## 🚩 Goal 
 Learn how to use the Nginx to serve static content such as HTML, CSS, JavaScript and Images
 
-## What Is a Web Server?
+## ➡️ What Is a Web Server?
 
 A web server is software (and sometimes the hardware it runs on) that receives requests from clients (usually web browsers) and delivers web content such as HTML pages, images, CSS, JavaScript, or API responses over the internet using HTTP/HTTPS.
 
@@ -135,3 +135,124 @@ systemctl reload nginx
 1. Role of a Web Server: Nginx serves web content to users, handles HTTP/HTTPS requests, and can act as a reverse proxy or load balancer.
 2. Core Nginx Configuration: The main configuration file (nginx.conf) controls server behavior, virtual hosts, logging, and request handling.
 3. HTTP Status Codes Matter: Understanding common HTTP error codes (e.g., 404, 500, 502) helps troubleshoot server and application issues efficiently.
+
+# 🌐 Chapter 2: Nginx as Reverse Proxy
+
+## ➡️ What is Reverse Proxy
+A reverse proxy in NGINX is when NGINX sits in front of one or more backend servers and forwards client requests to them, then sends the responses back to the clients.
+
+## How it works (step by step)
+
+1. A user requests https://example.com
+2. The request reaches NGINX
+3. NGINX forwards the request to a backend server (for example, a Node.js, Python, or Java app)
+4. The backend processes the request and sends a response to NGINX
+5. NGINX returns the response to the user
+
+## 📌 Why use NGINX as a reverse proxy?
+
+### Common reasons include:
+
+- Security – backend servers are not exposed directly to the internet
+- Load balancing – distribute traffic across multiple backend servers
+- SSL/TLS termination – handle HTTPS in NGINX instead of the app
+- Caching – speed up responses
+- Compression – reduce response size
+- Centralized routing – route different URLs to different services
+
+## 📝 Reverse Proxy Configuration on Linux
+### 🔧 File Path: `/etc/nginx/sites-available/default`
+
+The configuration file as shown in the below:
+```nginx
+server {
+    listen 80;
+    server_name localhost;
+
+    location / {
+        proxy_pass http://localhost:5000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+    }
+}
+````
+### Breakdown:
+- proxy_pass → forwards requests to your backend app
+- proxy_set_header → preserves original request metadata (like IP and host)
+
+## Goal of Demo
+
+We will access the python app from nginx with port 80 
+```scss
+Browser → NGINX (port 80) → Backend app (port 5000)
+```
+The user will access NGINX, not the backend directly.
+### Step 1: Create a simple backend app (Python)
+Install Flask 
+```bash
+pip install flask
+```
+Create the `app.py` file and write the below code
+```python
+from flask import Flask
+
+app = Flask(__name__)
+
+@app.route("/")
+def home():
+    return "Hello from Backend Server (Python Flask)"
+
+@app.route("/api")
+def api():
+    return "This response came through NGINX Reverse Proxy"
+
+if __name__ == "__main__":
+    app.run(host="127.0.0.1", port=5000)
+```
+Run it:
+```bash
+python app.py
+```
+Test directly: 
+```bash
+http://localhost:5000
+```
+You should see:
+```json
+Hello from Backend Server (Python Flask)
+```
+### Step 2: Edit the Nginx configuration file as shown below
+```nginx
+server {
+    listen 80;
+    server_name localhost;
+
+    location / {
+        proxy_pass http://localhost:5000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+    }
+}
+```
+### Step 3: Test and Reload the Nginx
+Check config: 
+```bash
+nginx -t
+```
+Once you status 🆗, Reload the Nginx
+```bash
+systemctl reload nginx
+```
+### Step 4: Test the reverse proxy
+Now open in browser:
+```html
+http://localhost
+```
+You should see:
+```pgsql
+Hello from Backend Server (Python Flask)
+```
+## 🤓 Summary 
+1. Forwards client requests to backend servers.
+2. Hides and protects backend applications.
+3. Improves performance with load balancing and SSL handling.
