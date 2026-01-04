@@ -218,7 +218,7 @@ Test directly:
 http://localhost:5000
 ```
 You should see:
-```json
+```pgsql
 Hello from Backend Server (Python Flask)
 ```
 ### Step 2: Edit the Nginx configuration file as shown below
