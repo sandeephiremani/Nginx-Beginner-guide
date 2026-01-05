@@ -138,7 +138,7 @@ systemctl reload nginx
 
 # 🌐 Chapter 2: Nginx as Reverse Proxy
 
-## ➡️ What is Reverse Proxy
+## ➡️ What is Reverse Proxy?
 A reverse proxy in NGINX is when NGINX sits in front of one or more backend servers and forwards client requests to them, then sends the responses back to the clients.
 
 ## How it works (step by step)
@@ -252,7 +252,48 @@ You should see:
 ```pgsql
 Hello from Backend Server (Python Flask)
 ```
-## 🤓 Summary 
+## 🤓 Key Learning 
 1. Forwards client requests to backend servers.
 2. Hides and protects backend applications.
 3. Improves performance with load balancing and SSL handling.
+
+# 🌐 Chapter 3: Load Balancer
+
+## ➡️ What is the Load Balancer?
+A load balancer is a component that distributes incoming client requests across multiple backend servers so that no single server gets overloaded.
+
+In Nginx, a load balancer sits in front of multiple servers (like Flask apps) and decides which server should handle each request.
+
+🚦 Think of it like a traffic police officer directing cars to different roads.
+
+## ➡️ Why Do We Use a Load Balancer?
+1. High Availability
+   - If one server crashes, others still handle requests.
+2. Better Performance
+   - Traffic is shared, so response time is faster.
+3. Scalability
+   - You can add more servers without changing client code.
+4. Fault Tolerance
+    - Nginx can stop sending traffic to a failed server.
+5. Efficient Resource Usage
+    - Prevents one server from being overloaded.
+
+## How Does Nginx Load Balancing Work?
+1. Client sends request → http://localhost
+2. Nginx receives the request
+3. Nginx forwards it to one of the backend servers
+4. Backend server responds
+5. Nginx sends response back to client
+
+## Common Load Balancing Algorithms
+| **Algorithm**                  | **One-Line Explanation**                                             |
+| ------------------------------ | -------------------------------------------------------------------- |
+| **Round Robin**                | Distributes requests sequentially to each server one by one.         |
+| **Least Connections**          | Sends requests to the server with the fewest active connections.     |
+| **IP Hash**                    | Routes requests from the same client IP to the same server.          |
+| **Weighted Round Robin**       | Sends more requests to servers with higher assigned weight.          |
+| **Weighted Least Connections** | Chooses the server with least connections considering server weight. |
+| **Random**                     | Randomly selects a backend server for each request.                  |
+| **Hash (URL/Key Hash)**        | Uses a hash of a request attribute (URL/key) to select a server.     |
+| **Failover**                   | Routes traffic only to backup servers when primary servers fail.     |
+
