@@ -239,7 +239,7 @@ Check config:
 ```bash
 nginx -t
 ```
-Once you status 🆗, Reload the Nginx
+Once status shows 🆗, Reload the Nginx
 ```bash
 systemctl reload nginx
 ```
@@ -297,3 +297,109 @@ In Nginx, a load balancer sits in front of multiple servers (like Flask apps) an
 | **Hash (URL/Key Hash)**        | Uses a hash of a request attribute (URL/key) to select a server.     |
 | **Failover**                   | Routes traffic only to backup servers when primary servers fail.     |
 
+## 🧪 Demo: Load Balancing with Two Flask Applications
+### 🕸️ Workflow of Load Balancer
+```css
+Client
+   ↓
+ Nginx (Port 80)
+   ↓
+-----------------
+| Flask App 1  |  (Port 5001)
+| Flask App 2  |  (Port 5002)
+-----------------
+```
+
+### Step 1: Create two simple backend app (Python)
+Install Flask 
+```bash
+pip install flask
+```
+### 👉 Create the `app1.py` file and write the below code 
+
+```python
+from flask import Flask
+
+app = Flask(__name__)
+
+@app.route("/")
+def home():
+    return "Hello from Flask App 1 (Port 5001)"
+
+if __name__ == "__main__":
+    app.run(port=5001)
+```
+Run it: 
+```bash
+python app1.py
+```
+### 👉 Create the `app2.py` file and write the below code 
+```python
+from flask import Flask
+
+app = Flask(__name__)
+
+@app.route("/")
+def home():
+    return "Hello from Flask App 2 (Port 5002)"
+
+if __name__ == "__main__":
+    app.run(port=5002)
+```
+Run it:
+```bash
+python app2.py
+```
+### Step 2: Nginx configuration as Load Balancer
+
+Edit Nginx configuration(`Nginx.conf` or `/etc/nginx/conf.d/default.conf`):
+```nginx
+http {
+    upstream flask_backend {
+        server 127.0.0.1:5001;
+        server 127.0.0.1:5002;
+    }
+
+    server {
+        listen 80;
+
+        location / {
+            proxy_pass http://flask_backend;
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+        }
+    }
+}
+```
+
+- upstream → defines backend servers
+- proxy_pass → forwards requests
+- Default algorithm → Round Robin
+
+**Check config:** 
+```bash
+nginx -t
+```
+Once status shows 🆗
+
+**Reload the Nginx**
+```bash
+systemctl reload nginx
+```
+### Step 3: Test the reverse proxy
+Now open in browser:
+```html
+http://localhost
+```
+Refresh multiple times 🔽
+
+You will see the response alternate:
+```css
+Hello from Flask App 1 (Port 5001)
+Hello from Flask App 2 (Port 5002)
+```
+### Key Learnings
+- Nginx Load Balancer distributes traffic across servers
+- Improves performance, reliability, scalability
+- Easy to configure
+- Works perfectly with Flask apps
