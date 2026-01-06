@@ -398,8 +398,207 @@ You will see the response alternate:
 Hello from Flask App 1 (Port 5001)
 Hello from Flask App 2 (Port 5002)
 ```
-### Key Learnings
+### 🤓 Key Learnings
 - Nginx Load Balancer distributes traffic across servers
 - Improves performance, reliability, scalability
 - Easy to configure
 - Works perfectly with Flask apps
+
+# 🌐 Chapter 4: API Gateway
+## ➡️ What is API  Gateway in Nginx?
+
+An API gateway is a single entrypoint that sits between clients and backend services and it's 
+
+Instead of the client talking directly to many services:
+```arduino
+Client → Service A
+Client → Service B
+Client → Service C
+```
+The client talks to one gateway:
+```arduino
+Client → API Gateway → Service A
+                     → Service B
+                     → Service C
+```
+
+## 🤔 Why Do We Need an API Gateway?
+**Problems Without an API Gateway**
+
+If clients directly access services:
+
+- Client must know multiple URLs
+- Security logic is duplicated
+- No centralized logging
+- Hard to scale services independently
+- Load balancing is complex
+
+## 🤓 How API Gateway resolve above issue ❓
+
+| Feature         | Why it matters                      |
+| --------------- | ----------------------------------- |
+| Routing         | Forward requests to correct service |
+| Load balancing  | Distribute traffic                  |
+| Security        | Auth, rate limiting                 |
+| SSL termination | HTTPS handled in one place          |
+| Logging         | Central request logs                |
+| Abstraction     | Backend services can change         |
+
+## 😎 How Nginx Works as an API Gateway
+
+High level Flow
+
+```scss
+Client Request
+     ↓
+Nginx (API Gateway)
+     ↓
+Route Decision
+     ↓
+Backend Service (Flask App)
+     ↓
+Response
+```
+**Breakdown:**
+* **Client Request**: The client (browser, mobile app, or API consumer) sends an HTTP request to a single public endpoint.
+* **Nginx (API Gateway)**: Nginx receives the request and acts as a reverse proxy, security layer, and traffic controller.
+* **Route Decision**: Nginx checks the request path, method, or headers and decides which backend service should handle it.
+* **Backend Service (Flask App)**: The selected Flask application processes the request and generates a response.
+* **Response**: The response flows back through Nginx to the client, appearing as if it came from one unified API.
+
+## 🧪 Demo: API Gateway with Flask applications 
+
+### Architecture of Our Demo
+```bash
+Client
+  |
+  | http://localhost:8080/api/user
+  | http://localhost:8080/api/product
+  |
+Nginx API Gateway (Port 8080)
+  |
+  |----> Flask App 1 (User Service)     Port 5001
+  |----> Flask App 2 (Product Service)  Port 5002
+```
+
+### Step 1: Flask Application 1 – User Service
+Create a file 📁 `user_service.py` and insert the below code:
+```python
+from flask import Flask, jsonify
+
+app = Flask(__name__)
+
+@app.route('/user')
+def user():
+    return jsonify({
+        "service": "User Service",
+        "message": "Hello from User API"
+    })
+
+if __name__ == '__main__':
+    app.run(port=5001)
+```
+### Step 2: Flask Application 2 – Product Service
+Create a file 📁 `product_service.py` and insert the below code:
+```python
+from flask import Flask, jsonify
+
+app = Flask(__name__)
+
+@app.route('/product')
+def product():
+    return jsonify({
+        "service": "Product Service",
+        "message": "Hello from Product API"
+    })
+
+if __name__ == '__main__':
+    app.run(port=5002)
+```
+### Step 3: Nginx Configuration as API Gateway
+Edit Nginx configuration(`Nginx.conf` or `/etc/nginx/conf.d/default.conf`):
+```nginx
+events {}
+
+http {
+
+    upstream user_service {
+        server 127.0.0.1:5001;
+    }
+
+    upstream product_service {
+        server 127.0.0.1:5002;
+    }
+
+    server {
+        listen 8080;
+
+        location /api/user/ {
+            proxy_pass http://user_service/;
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+        }
+
+        location /api/product/ {
+            proxy_pass http://product_service/;
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+        }
+    }
+}
+```
+**How Routing Works Here**
+| Client Request         | Routed To             |
+| ---------------------- | --------------------- |
+| `/api/user/user`       | Flask User Service    |
+| `/api/product/product` | Flask Product Service |
+
+### Step 4: Running the Demo
+Start Flask Apps
+```bash
+python user_service.py
+python product_service.py
+```
+**Check config:** 
+```bash
+nginx -t
+```
+Once status shows 🆗
+
+**Reload the Nginx**
+```bash
+systemctl reload nginx
+```
+
+### Step 5: Test Requests
+
+```bash
+curl http://localhost:8080/api/user/user
+```
+
+**Output:**
+```json
+{
+  "service": "User Service",
+  "message": "Hello from User API"
+}
+```
+
+```bash
+curl http://localhost:8080/api/product/product
+```
+
+**Output:**
+```json
+{
+  "service": "Product Service",
+  "message": "Hello from Product API"
+}
+```
+## 🤓 Key Learnings
+
+**Nginx as an API Gateway:**
+- Accepts all client requests
+- Routes to correct backend service
+- Improves security, scalability, and maintainability
+- Ideal for microservices architectures
