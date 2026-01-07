@@ -602,3 +602,14 @@ curl http://localhost:8080/api/product/product
 - Routes to correct backend service
 - Improves security, scalability, and maintainability
 - Ideal for microservices architectures
+
+## 😍Contributions are welcome!  
+If you are interested in contributing to this learning project, please feel free to:
+
+- Fork the repository  
+- Create a new branch  
+- Make your changes  
+- Submit a Pull Request  
+
+For any questions or suggestions, feel free to open an issue.
+
